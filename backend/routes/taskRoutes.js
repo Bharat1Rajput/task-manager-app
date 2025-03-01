@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const Task = require('../models/taskModels');
+const {getTasks, postTasks} = require('../controllers/taskController')
+
 
 router.get("/", (req,res)=>{
     res.send("this is home page ");
@@ -12,30 +14,12 @@ router.get("/", (req,res)=>{
 
 // for creating task
 
-router.post('/tasks', async(req,res)=>{
-    try{
-        const task = await Task.create(req.body);
-        res.status(201).json(task);
-        // console.log(task);
-    }
-    catch(err){
-        res.status(500).json({message: err.message});
-    }
-
-})
+router.post('/tasks',postTasks )
 
 
 // for get or read the tasks
 
-router.get('/tasks', async (req,res)=>{
-    try{
-        const task = await Task.find();
-        res.status(200).json(task);
-    }
-    catch(err){
-        res.status(500).json({message: err.message});
-    }
-})
+router.get('/tasks',getTasks )
 
 
 module.exports = router;
