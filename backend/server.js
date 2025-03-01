@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv').config()
 const taskRoutes = require('./routes/taskRoutes')
+const authRoutes = require('./routes/authRoutes');
 
 
 const PORT = process.env.PORT || 3000;
@@ -13,7 +14,9 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}));
 
 app.use('/api', taskRoutes);
-
+app.use('/api/auth', authRoutes);
+ 
+// console.log("mongo URI:  ",process.env.MONGO_URI )
 mongoose.connect(process.env.MONGO_URI)
 .then(() => 
 
