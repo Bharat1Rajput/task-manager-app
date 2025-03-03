@@ -16,7 +16,7 @@ app.use(express.urlencoded({extended: false}));
 app.use('/api', taskRoutes);
 app.use('/api/auth', authRoutes);
  
-// console.log("mongo URI:  ",process.env.MONGO_URI )
+// c    onsole.log("mongo URI:  ",process.env.MONGO_URI )   
 mongoose.connect(process.env.MONGO_URI)
 .then(() => 
 

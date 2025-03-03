@@ -1,25 +1,12 @@
-const express = require('express');
+const express = require('express')
+const {createTask, getTasks, updateTask, deleteTask} = require('../controllers/taskController')
+
+const authMiddle = require('../middlewares/authMiddleware')
 const router = express.Router();
 
-const Task = require('../models/taskModels');
-const {getTasks, postTasks} = require('../controllers/taskController')
-
-
-router.get("/", (req,res)=>{
-    res.send("this is home page ");
-})   
-
-
-
-
-// for creating task
-
-router.post('/tasks',postTasks )
-
-
-// for get or read the tasks
-
-router.get('/tasks',getTasks )
-
+router.post('/',authMiddle,createTask)
+router.get('/',authMiddle, getTasks)
+router.put('/:id',authMiddle, updateTask)
+router.delete('/:id',authMiddle, deleteTask)
 
 module.exports = router;
