@@ -21,7 +21,10 @@ exports.getTasks = async (req, res) => {
         // res.json(tasks);
 
         // adding pagination
-        let {page,limit,status,priority} = req.query;
+        let {page,limit,status,priority,search} = req.query;
+        
+        // console.log("request query", req.query);
+        // console.log("this is search", search );
 
         page = parseInt(page) || 1;
         limit = parseInt(limit) || 10;
@@ -33,6 +36,13 @@ exports.getTasks = async (req, res) => {
 
         if(status) filter.status = status;
         if(priority) filter.priority = priority;
+
+        if (search) {
+          filter.title = { $regex: search, $options: "i" };  
+          // "i" makes it case-insensitive
+      }
+
+      console.log("this is search", search );
 
         const tasks = await Task.find({user: req.user.id, ...filter}).skip(skip).limit(limit);
 
