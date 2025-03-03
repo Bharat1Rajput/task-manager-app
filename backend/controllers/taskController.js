@@ -13,12 +13,31 @@ exports.createTask = async (req, res) => {
 }
 
 
-// get all task
+// get task of a user
 
 exports.getTasks = async (req, res) => {
     try {
-        const tasks = await Task.find({user: req.user.id}).sort({createdAt: -1});
-        res.json(tasks);
+        // const tasks = await Task.find({user: req.user.id}).sort({createdAt: -1});
+        // res.json(tasks);
+
+        // adding pagination
+        let {page,limit} = req.query;
+
+        page = parseInt(page) || 1;
+        limit = parseInt(limit) || 10;
+
+        const skip = (page -1)* limit;
+
+        const tasks = await Task.find({user: req.user.id}).skip(skip).limit(limit);
+
+        const totalTasks =  await Task.countDocuments({user: req.user.id});
+
+        res.json(
+          {page,
+          limit,
+          totalTasks,
+          totalPages: Math.ceil(totalTasks / limit),
+          data: tasks,})
         
     }
 
