@@ -21,16 +21,22 @@ exports.getTasks = async (req, res) => {
         // res.json(tasks);
 
         // adding pagination
-        let {page,limit} = req.query;
+        let {page,limit,status,priority} = req.query;
 
         page = parseInt(page) || 1;
         limit = parseInt(limit) || 10;
 
         const skip = (page -1)* limit;
 
-        const tasks = await Task.find({user: req.user.id}).skip(skip).limit(limit);
+        // add filtering
+        let filter = {};
 
-        const totalTasks =  await Task.countDocuments({user: req.user.id});
+        if(status) filter.status = status;
+        if(priority) filter.priority = priority;
+
+        const tasks = await Task.find({user: req.user.id, ...filter}).skip(skip).limit(limit);
+
+        const totalTasks =  await Task.countDocuments({user: req.user.id, ...filter});
 
         res.json(
           {page,
