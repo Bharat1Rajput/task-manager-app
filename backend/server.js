@@ -4,6 +4,7 @@ const dotenv = require('dotenv').config()
 const taskRoutes = require('./routes/taskRoutes')
 const authRoutes = require('./routes/authRoutes');
 const { truncates } = require('bcryptjs');
+const emailScheduler = require('./scheduler/emailScheduler');
 
 
 const PORT = process.env.PORT || 3000;
