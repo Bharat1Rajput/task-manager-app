@@ -4,7 +4,7 @@ const dotenv = require('dotenv').config()
 const taskRoutes = require('./routes/taskRoutes')
 const authRoutes = require('./routes/authRoutes');
 const { truncates } = require('bcryptjs');
-const emailScheduler = require('./scheduler/emailScheduler');
+// const emailScheduler = require('./scheduler/emailScheduler');
 
 
 const PORT = process.env.PORT || 3000;
@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended: true}));
 app.use('/api', taskRoutes);
 app.use('/api/auth', authRoutes);
  
-// c    onsole.log("mongo URI:  ",process.env.MONGO_URI )   
+// console.log("mongo URI:  ",process.env.MONGO_URI )   
 mongoose.connect(process.env.MONGO_URI)
 .then(() => 
 

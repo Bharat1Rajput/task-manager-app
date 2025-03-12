@@ -4,13 +4,36 @@ const Task = require('../models/taskModels')
 exports.createTask = async (req, res) => {
     try {
         const { title, description, status, priority, dueDate } = req.body;
-        const task = await Task.create({ title, description, status, priority, dueDate,  user: req.user.id  });
+        const task = await Task.create({ title, description, status, priority, dueDate, createdBy: req.user.id,assignedTo: req.user.id });
         res.status(201).json(task);
     }
     catch (err) {
         res.status(400).json({error : err.message});
 }
 }
+
+
+// when admin create a task
+exports.createTaskByAdmin = async (req, res)=>{
+  console.log("this is req.body");
+  try {
+    const { title, description, status, priority, dueDate, assignedTo } = req.body;
+     console.log("this is assigned to", assignedTo);
+    const task = await Task.create({ title, 
+      description, 
+      status, 
+      priority, 
+      dueDate, 
+      createdBy: req.user.id,
+      assignedTo 
+    });
+    res.status(201).json(task);
+  }
+  catch (err) {
+    res.status(400).json({error : err.message});
+  }
+  
+};
 
 
 // get task of a user
@@ -27,7 +50,7 @@ exports.getTasks = async (req, res) => {
         // console.log("this is search", search );
 
         page = parseInt(page) || 1;
-        limit = parseInt(limit) || 10;
+        limit = parseInt(limit) || 25;
 
         const skip = (page -1)* limit;
 
@@ -39,48 +62,64 @@ exports.getTasks = async (req, res) => {
 
         if (search) {
           filter.title = { $regex: search, $options: "i" };  
-          // "i" makes it case-insensitive
+          
       }
 
-      console.log("this is search", search );
+      // console.log("this is search :", search );
 
-        const tasks = await Task.find({user: req.user.id, ...filter}).skip(skip).limit(limit);
+      if (req.user.role === "admin") {
+        // Admin can see all tasks
+        const tasks = await Task.find(filter).skip(skip).limit(limit).populate("assignedTo", "name email");
+        const totalTasks = await Task.countDocuments(filter);
 
-        const totalTasks =  await Task.countDocuments({user: req.user.id, ...filter});
+        return res.json({
+            page,
+            limit,
+            totalTasks,
+            totalPages: Math.ceil(totalTasks / limit),
+            data: tasks
+        });
 
-        res.json(
-          {page,
-          limit,
-          totalTasks,
-          totalPages: Math.ceil(totalTasks / limit),
-          data: tasks,})
-        
+
+    } else {
+        // Regular user can only see their own tasks
+        filter.user = req.user.id;
+        const tasks = await Task.find(filter).skip(skip).limit(limit);
+        const totalTasks = await Task.countDocuments(filter);
+
+        return res.json({
+            page,
+            limit,
+            totalTasks,
+            totalPages: Math.ceil(totalTasks / limit),
+            data: tasks
+        });
     }
-
-    catch (err) {
-        res.status(500).json({ msg: err.message });
+} catch (err) {
+    res.status(500).json({ msg: err.message });
 }
-};
-// update task
-exports.updateTask = async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
-      
-          if (!task || task.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Task not found' });
-          };
 
-          Object.assign(task, req.body);
-
-          await task.save();
-          res.json(task);
-
-
-        } 
-        catch (err) {
-          res.status(400).json({ error: err.message });
-        }
     };
+
+
+    // update task 
+   exports.updateTask = async (req, res) => {
+      try {
+          const task = await Task.findById(req.params.id);
+          if (!task) return res.status(404).json({ error: "Task not found" });
+  
+          if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id) {
+              return res.status(403).json({ error: "Access Denied" });
+          }
+  
+          Object.assign(task, req.body);
+          await task.save();
+          res.json({ message: "Task updated", task });
+      } catch (err) {
+          res.status(400).json({ error: err.message });
+      }
+  };
+  
 
 
     // delete task
@@ -88,14 +127,16 @@ exports.updateTask = async (req, res) => {
   exports.deleteTask = async (req, res) => {
     try {
         const task = await Task.findById(req.params.id);
-        if (!task || task.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Task not found' });
-          }
+        
+        if (!task) return res.status(404).json({ error: "Task not found" });
+
+        if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id) {
+            return res.status(403).json({ error: "Access Denied" });
+        }
 
           await task.deleteOne();
           res.json({message : "Task deleted successfully"});
 
-          
         }
         catch(err){
             res.status(400).json({msg : err.message});
