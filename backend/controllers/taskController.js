@@ -27,13 +27,44 @@ exports.createTaskByAdmin = async (req, res)=>{
       createdBy: req.user.id,
       assignedTo 
     });
-    res.status(201).json(task);
-  }
+    
+    // if(connectedUsers[assignedTo]){
+    //   const socketId = connectedUsers[assignedTo];
+    //   io.to(socketId).emit("taskAssigned", {
+    //     message: "A new task has been assigned to you!",
+    //     task,});
+
+    res.status(201).json({message : "task assigned successfull",task});
+  
+}
   catch (err) {
     res.status(400).json({error : err.message});
   }
   
 };
+
+// create task with file
+
+exports.createTaskWithFile = async (req, res) => {
+    try {
+      const { title, description, status, priority, dueDate, assignedTo } = req.body;
+      let filepath = "";
+
+      if(req.file){
+        filepath = req.file.path;
+      }
+
+      const task = await Task.create({ title, description, status, priority, dueDate, createdBy: req.user.id, assignedTo, file: filepath });
+
+      res.status(201).json({message : "Task created successfully", task});
+
+    }catch(err){
+      res.status(400).json({error : err.message});
+}
+};
+
+
+
 
 
 // get task of a user
@@ -130,10 +161,7 @@ exports.getTasks = async (req, res) => {
         
         if (!task) return res.status(404).json({ error: "Task not found" });
 
-        if (req.user.role !== 'admin' && task.assignedTo.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Access Denied" });
-        }
-
+       
           await task.deleteOne();
           res.json({message : "Task deleted successfully"});
 

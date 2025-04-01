@@ -1,9 +1,14 @@
 const express = require('express')
-const {createTask,createTaskByAdmin, getTasks, updateTask, deleteTask} = require('../controllers/taskController')
+const {createTask,createTaskByAdmin, getTasks, updateTask, deleteTask,createTaskWithFile} = require('../controllers/taskController')
 
 const {checkAuth,checkRole} = require('../middlewares/authMiddleware')
+const upload = require('../middlewares/upload');
+
 
 const router = express.Router();
+
+// for file upload
+router.post('/upload',upload.single('file'),createTaskWithFile);
 
 // for user to create, get, update, delete task
 router.post('/',checkAuth,createTask)
